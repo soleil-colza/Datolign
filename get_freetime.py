@@ -54,12 +54,7 @@ def get_free_time(
     except_start_time = except_date_str.replace(
         hour=int(except_start_time_msg.content.split(":")[0]),
         minute=int(except_start_time_msg.content.split(":")[1]),
-    ).time()
 
-    except_end_time = except_date_str.replace(
-        hour=int(except_end_time_msg.content.split(":")[0]),
-        minute=int(except_end_time_msg.content.split(":")[1]),
-    ).time()
 
     busy_slots = []
     for event in events:
@@ -74,6 +69,8 @@ def get_free_time(
                     datetime.datetime.fromisoformat(end),
                 )
             )
+
+＃ ↓ここからSlack上のコードに変更
 
     # 空いている時間帯を計算
     free_slots = []
@@ -104,7 +101,7 @@ def get_free_time(
     free_slots = free_slots[:output_limit]  # output_limitの数だけ返す
     print(except_start_time, except_end_time)
     return free_slots
-
+＃ ↑ここまでSlack上のコードに変更
 
 bot = commands.Bot(
     command_prefix="!", intents=discord.Intents.all()
