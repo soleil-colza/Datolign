@@ -34,11 +34,13 @@ async def on_message(message):
 
 @bot.event
 async def on_reaction(reaction, user):
-    channel = reaction.message.channel
     if user == bot.user:
         # Bot自身のリアクションには反応しない
         return
-
+    channel = reaction.message.channel
+    members = channel.guild.members
+    # ボットを考慮しない人数
+    member_count = sum(not member.bot for member in members)
     message_id = reaction.message.id
     message = await channel.fetch_message(message_id)
     content = message.content
@@ -53,7 +55,7 @@ async def on_reaction(reaction, user):
     result = []
     for message in reaction_count.keys():
         reactions = reaction_count[message]
-        if sum(reactions.values()) > 1:
+        if sum(reactions.values()) == member_count + 1:
             point_3 = reactions.get("🎉", 0)
             point_2 = reactions.get("👀", 0)
             point_1 = reactions.get("👍", 0)
@@ -63,9 +65,11 @@ async def on_reaction(reaction, user):
                 result = [[score, message]]
             elif max_score == score:
                 result.append([score, message])
-    if len(result) != 0:
+    if len(result) > 1:
         times = [time[1] for time in result]
-        await channel.send(f"同票の日程が{len(result)}件あります\n{''.join(str(x) for x in times)}")
+        await channel.send(f"最大票の日程が{len(result)}件あります\n{''.join(str(x) for x in times)}")
+    elif len(result) == 1:
+        await channel.send(f"最大票の日程\n{result[0][1]}")
 
 
 @bot.command()
