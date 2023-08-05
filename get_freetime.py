@@ -117,6 +117,24 @@ async def on_ready():
 
 
 @bot.event
+async def on_reaction_add(reaction, user):
+
+    # リアクションが投票期日後に付けられたかを確認する
+    if reaction.message.content.startswith("Proposed timeslot:"):
+        deadline_str = reaction.message.content.split("at")[1].strip()
+        deadline = datetime.datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
+        if datetime.datetime.utcnow() > deadline:
+            # 現在の日付と時刻が投票期日を過ぎている場合、 そのことをユーザーに知らせるメッセージを表示する
+            await reaction.message.channel.send(
+                f"この投票の期限は{deadline_str}でした。."
+            )
+            # 期限が過ぎてから追加されたリアクションを削除する
+            await reaction.remove(user)
+        else:
+            # 期日以前の投票は許可する　***ここの処理が重複しないように後ほど処理***
+            print(f"{user} が {reaction.message.content} に {reaction.emoji}と投票しました！")
+            
+@bot.event
 async def on_message(message):
     # メッセージがbot自身のものであれば無視
     if message.author.bot:
