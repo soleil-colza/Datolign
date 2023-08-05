@@ -49,7 +49,7 @@ async def show_calendar(ctx):
 
     try:
         while True:
-            reaction, _ = await bot.wait_for("reaction_add", timeout=120.0, check=check)
+            reaction, user = await bot.wait_for("reaction_add", timeout=120.0, check=check)
             last_date = calendar.monthrange(current_year, current_month)[1]
 
             # 月の変更を処理
@@ -84,6 +84,7 @@ async def show_calendar(ctx):
                 out = f"{current_year}-{current_month}-{selected_date} 18:00"
                 await ctx.send(out)
                 return out
+            await reaction.message.remove_reaction(reaction, user)
 
             # カレンダーの内容を更新
             calendar_message, emoji = create_calendar_message(
