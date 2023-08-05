@@ -1,16 +1,18 @@
 import discord
+import os
 from discord.ext import commands
 import datetime
 import pytz
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
+from dotenv import load_dotenv
+load_dotenv()
 
 # Google Calendar APIの設定
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 CLIENT_SECRET_FILE = "token.json"
 API_SERVICE_NAME = "calendar"
 API_VERSION = "v3"
-TOKEN = ""
 
 # 日本時間のタイムゾーンを指定
 jst = pytz.FixedOffset(540)
@@ -201,8 +203,13 @@ async def process_freetime_command(message):
         start_time_jst = slot[0].astimezone(jst).strftime("%Y-%m-%d %H:%M")
         end_time_jst = slot[1].astimezone(jst).strftime("%Y-%m-%d %H:%M")
         output = f"{start_time_jst} から {end_time_jst}\n"
-        await message.channel.send("```" + output + "```")
+        sent_message = await message.channel.send("```" + output + "```")
+
+        # メッセージに対してリアクションを追加
+        await sent_message.add_reaction("👍")
+        await sent_message.add_reaction("👀")
+        await sent_message.add_reaction("🎉")
 
 
 # Discord botのトークンを使って起動
-bot.run(TOKEN)
+bot.run(os.getenv('TOKEN'))
