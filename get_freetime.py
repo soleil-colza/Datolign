@@ -135,32 +135,32 @@ async def on_message(message):
 
 
 async def process_freetime_command(message):
-    await message.channel.send("検索開始日時を指定してください。（例: 2023-08-01 12:00）")
+    await message.channel.send("さあ、検索を始めましょう！🔍 いつから探し始めるか教えてくださいね（例: 2023-08-01 12:00）")
     start_date_msg = await bot.wait_for(
         "message", check=lambda m: m.author == message.author
     )
 
-    await message.channel.send("検索終了日時を指定してください。（例: 2023-08-03 12:00）")
+    await message.channel.send("そして、検索を終える日時はいつにしますか？📅（例: 2023-08-03 12:00）")
     end_date_msg = await bot.wait_for(
         "message", check=lambda m: m.author == message.author
     )
 
-    await message.channel.send("検索を考慮しない開始時間を入力してください。（例: 00:00）")
+    await message.channel.send("次に、検索をスキップする開始時間を教えてください。⏰（例: 00:00）")
     except_start_time_msg = await bot.wait_for(
         "message", check=lambda m: m.author == message.author
     )
 
-    await message.channel.send("検索を考慮しない終了時間を入力してください。（例: 09:00）")
+    await message.channel.send("同様に、検索をスキップする終了時間も教えてくださいね。⏰（例: 09:00）")
     except_end_time_msg = await bot.wait_for(
         "message", check=lambda m: m.author == message.author
     )
 
-    await message.channel.send("表示間隔（分）を指定してください。（例: 60）")
+    await message.channel.send("表示間隔は何分にしますか？⏳（例: 60）")
     interval_minutes_msg = await bot.wait_for(
         "message", check=lambda m: m.author == message.author
     )
 
-    await message.channel.send("表示件数を指定してください。（例: 5）")
+    await message.channel.send("表示したい件数は何件にしますか？🔢（例: 5）")
     output_limit_msg = await bot.wait_for(
         "message", check=lambda m: m.author == message.author
     )
@@ -176,8 +176,8 @@ async def process_freetime_command(message):
         output_limit = int(output_limit_msg.content)
 
     except ValueError:
-        await message.channel.send("入力が無効です。正しい形式で入力してください。")
-        await message.channel.send("もう一度初めからやり直してください。")
+        await message.channel.send("おっと、入力がちょっと違うみたいです。😅 正しい形式で再度入力してみてくださいね。")
+        await message.channel.send("大丈夫、一度リセットして最初からやり直しましょう。🔄")
         return
 
     free_time_slots = get_free_time(
@@ -190,11 +190,11 @@ async def process_freetime_command(message):
     )
 
     if start_date > end_date:
-        await message.channel.send("終了日時は開始日時より後に設定してください。")
+        await message.channel.send("ちょっと待って、終了日時は開始日時より後に設定する必要がありますよ。⏰")
         return
 
     if free_time_slots == []:
-        await message.channel.send("指定された期間に空いている時間帯はありません。")
+        await message.channel.send("ごめんなさい、指定された期間に空いている時間帯が見つかりませんでした。😔")
         return
 
     output = ""
