@@ -206,10 +206,20 @@ async def process_freetime_command(message):
         sent_message = await message.channel.send("```" + output + "```")
 
         # メッセージに対してリアクションを追加
+        await sent_message.add_reaction("🎉")
         await sent_message.add_reaction("👍")
         await sent_message.add_reaction("👀")
-        await sent_message.add_reaction("🎉")
 
+@bot.event
+async def on_reaction_add(reaction, user):
+    # リアクションがBot自身によるものであれば無視
+    if user == bot.user:
+        return
+
+    if str(reaction.emoji) in ["👍", "👀", "🎉"]:
+        for react in reaction.message.reactions:
+            if str(react) != str(reaction.emoji):
+                await reaction.message.remove_reaction(react, user)
 
 # Discord botのトークンを使って起動
 bot.run(os.getenv('TOKEN'))
