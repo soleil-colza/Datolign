@@ -2,15 +2,20 @@ import discord
 from discord.ext import commands
 import datetime
 import pytz
+import os
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
+from responce import on_reaction
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Google Calendar APIの設定
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 CLIENT_SECRET_FILE = "token.json"
 API_SERVICE_NAME = "calendar"
 API_VERSION = "v3"
-TOKEN = ""
+TOKEN = os.getenv("TOKEN")
 
 # 日本時間のタイムゾーンを指定
 jst = pytz.timezone("Asia/Tokyo")
@@ -89,30 +94,22 @@ async def on_ready():
 @bot.command()
 async def freetime(ctx):
     await ctx.send("検索開始日時を指定してください。（例: 2023-08-01 12:00）")
-    start_date_msg = await bot.wait_for(
-        "message", check=lambda m: m.author == ctx.author
-    )
+    start_date_msg = await bot.wait_for("message", check=lambda m: m.author == ctx.author)
 
     await ctx.send("検索終了日時を指定してください。（例: 2023-08-03 12:00）")
     end_date_msg = await bot.wait_for("message", check=lambda m: m.author == ctx.author)
 
     await ctx.send("表示間隔（分）を指定してください。（例: 60）")
-    interval_minutes_msg = await bot.wait_for(
-        "message", check=lambda m: m.author == ctx.author
-    )
+    interval_minutes_msg = await bot.wait_for("message", check=lambda m: m.author == ctx.author)
 
     await ctx.send("表示数を指定してください。（例: 5）")
-    output_limit_msg = await bot.wait_for(
-        "message", check=lambda m: m.author == ctx.author
-    )
+    output_limit_msg = await bot.wait_for("message", check=lambda m: m.author == ctx.author)
 
     try:
         start_date = jst.localize(
             datetime.datetime.strptime(start_date_msg.content, "%Y-%m-%d %H:%M")
         )
-        end_date = jst.localize(
-            datetime.datetime.strptime(end_date_msg.content, "%Y-%m-%d %H:%M")
-        )
+        end_date = jst.localize(datetime.datetime.strptime(end_date_msg.content, "%Y-%m-%d %H:%M"))
         interval_minutes = int(interval_minutes_msg.content)
         output_limit = int(output_limit_msg.content)
     except ValueError:
@@ -120,9 +117,7 @@ async def freetime(ctx):
         await ctx.send("もう一度初めからやり直してください。")
         return
 
-    free_time_slots = get_free_time(
-        start_date, end_date, interval_minutes, output_limit
-    )
+    free_time_slots = get_free_time(start_date, end_date, interval_minutes, output_limit)
 
     if start_date > end_date:
         await ctx.send("終了日時は開始日時より後に設定してください。")
@@ -139,6 +134,16 @@ async def freetime(ctx):
         end_time_jst = slot[1].astimezone(jst).strftime("%Y-%m-%d %H:%M")
         output = f"{start_time_jst} から {end_time_jst}\n"
         await ctx.send("```" + output + "```")
+
+
+# リアクションの集計用の辞書を初期化
+reaction_count = {}
+candidate_dates = []
+
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    await on_reaction(reaction, user)
 
 
 # Discord botのトークンを使って起動
