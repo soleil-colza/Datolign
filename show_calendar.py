@@ -100,21 +100,21 @@ async def show_calendar(ctx):
 def create_calendar_message(month, year, selected_date=0):
     cal = calendar.monthcalendar(year, month)
     header = f"```\nカレンダー {year}年 {month}月\n"
-    weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    weekday_names = " ".join([f"{weekday}" for weekday in weekdays])
+    weekdays = [" Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    weekday_names = "  ".join([f"{weekday}" for weekday in weekdays])
     calendar_str = header + weekday_names + "\n"
     emoji = []
     for week in cal:
         week_str = ""
         for day in week:
             if day == 0:
-                week_str += "    "
+                week_str += "     "
                 emoji.append(None)
             else:
                 if day == selected_date and month == month and year == year:
-                    week_str += f"[{day:2d}]"
+                    week_str += f" [{day:2d}]"
                 else:
-                    week_str += f" {day:2d} "
+                    week_str += f"  {day:2d} "
                 emoji.append(f"{year}-{month:02}-{day:02}")
         calendar_str += week_str + "\n"
     calendar_str += "```"
