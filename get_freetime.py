@@ -143,6 +143,13 @@ async def process_freetime_command(message):
     await message.channel.send("検索終了日時を指定してください。（例: 2023-08-03 12:00）")
     end_date_msg = await bot.wait_for(
         "message", check=lambda m: m.author == message.author
+
+    # 投票期限（＝start_date_msg）の取得
+    deadline = start_date_msg.content
+
+    # 投票期限の表示
+    await message.channel.send(f"投票期限は: {deadline} の00:00です")
+    
     )
 
     await message.channel.send("検索を考慮しない開始時間を入力してください。（例: 00:00）")
