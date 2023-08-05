@@ -5,6 +5,7 @@ import calendar
 from datetime import datetime
 from dotenv import load_dotenv
 import os
+import pandas as pd
 
 load_dotenv()
 
@@ -100,25 +101,23 @@ async def show_calendar(ctx):
 def create_calendar_message(month, year, selected_date=0):
     cal = calendar.monthcalendar(year, month)
     header = f"```\nカレンダー {year}年 {month}月\n"
-    weekdays = ["月", "火", "水", "木", "金", "土", "日"]
-    weekday_names = " ".join([f"{weekday:<2}" for weekday in weekdays])
-    calendar_str = header + weekday_names + "\n"
-    emoji = []
+    weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    calendar_list = []
     for week in cal:
-        week_str = ""
-        for day in week:
-            if day == 0:
-                week_str += "    "
-                emoji.append(None)
-            else:
+        week_list = [""] * 7
+        for i, day in enumerate(week):
+            if day != 0:
                 if day == selected_date and month == month and year == year:
-                    week_str += f"[{day:2}]"
+                    week_list[i] = f"[{day:2d}]"
                 else:
-                    week_str += f" {day:2} "
-                emoji.append(f"{year}-{month:02}-{day:02}")
-        calendar_str += week_str + "\n"
-    calendar_str += "```"
-    return calendar_str, emoji
+                    week_list[i] = f" {day:2d} "
+        calendar_list.append(week_list)
+    df = pd.DataFrame(calendar_list)
+    df.columns = weekdays
+
+    # DataFrameを文字列に変換
+    calendar_str = f"{header}{df.to_string(index=False)}\n```"
+    return calendar_str, df
 
 
 # Discord botのトークンを使って起動
