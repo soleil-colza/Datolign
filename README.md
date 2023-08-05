@@ -1,2 +1,2 @@
 # Datolign
-It is a Discord bot for arranging everyone's availability 
+Discord上で直感的に使用できる、日程調整ツールです。
