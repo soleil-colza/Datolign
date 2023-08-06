@@ -18,7 +18,7 @@ async def on_ready():
     print(f"{bot.user.name} has connected to Discord!")
 
 
-async def show_calendar(ctx):
+async def select_date(ctx):
     now = datetime.now()
     current_month = now.month
     current_year = now.year
