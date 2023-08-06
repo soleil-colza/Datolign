@@ -6,7 +6,8 @@ import pytz
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from dotenv import load_dotenv
-load_dotenv()
+
+load_dotenv() 
 
 # Google Calendar APIの設定
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
@@ -54,12 +55,12 @@ def get_free_time(
     except_start_time = except_date_str.replace(
         hour=int(except_start_time_msg.content.split(":")[0]),
         minute=int(except_start_time_msg.content.split(":")[1]),
-    ).time()
+    )
 
     except_end_time = except_date_str.replace(
         hour=int(except_end_time_msg.content.split(":")[0]),
         minute=int(except_end_time_msg.content.split(":")[1]),
-    ).time()
+    )
 
     busy_slots = []
     for event in events:
@@ -80,14 +81,18 @@ def get_free_time(
     current_time = start_date
     for event in busy_slots:
         if current_time < event[0] and not (
-            except_start_time <= current_time.time() <= except_end_time
+            except_start_time.time() <= current_time.time() <= except_end_time.time()
         ):
             while current_time < event[0] and not (
-                except_start_time <= current_time.time() <= except_end_time
+                except_start_time.time()
+                <= current_time.time()
+                <= except_end_time.time()
             ):  # 〇時間ずつ空いている時間帯を追加
                 next_time = current_time + datetime.timedelta(minutes=interval_minutes)
                 if next_time <= event[0] and not (
-                    except_start_time <= next_time.time() <= except_end_time
+                    except_start_time.time()
+                    <= next_time.time()
+                    <= except_end_time.time()
                 ):  # 〇時間後の時間がイベント開始より前なら追加
                     free_slots.append((current_time, next_time))
                 current_time = next_time
@@ -102,7 +107,6 @@ def get_free_time(
             current_time = next_time
 
     free_slots = free_slots[:output_limit]  # output_limitの数だけ返す
-    print(except_start_time, except_end_time)
     return free_slots
 
 
@@ -114,6 +118,22 @@ bot = commands.Bot(
 @bot.event
 async def on_ready():
     print(f"{bot.user.name} has connected to Discord!")
+
+
+@bot.event
+async def on_reaction_limit(reaction, user):
+    # リアクションが投票期日後に付けられたかを確認する
+    if reaction.message.content.startswith("Proposed timeslot:"):
+        deadline_str = reaction.message.content.split("at")[1].strip()
+        deadline = datetime.datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
+        if datetime.datetime.utcnow() > deadline:
+            # 現在の日付と時刻が投票期日を過ぎている場合、 そのことをユーザーに知らせるメッセージを表示する
+            await reaction.message.channel.send(f"この投票の期限は{deadline_str}でした。.")
+            # 期限が過ぎてから追加されたリアクションを削除する
+            await reaction.remove(user)
+        else:
+            # 期日以前の投票は許可する　***ここの処理が重複しないように後ほど処理***
+            print(f"{user} が {reaction.message.content} に {reaction.emoji}と投票しました！")
 
 
 @bot.event
@@ -189,12 +209,22 @@ async def process_freetime_command(message):
         except_end_time_msg,
     )
 
+    error_flag = False
+
+    if except_start_time_msg.content > except_end_time_msg.content:
+        await message.channel.send("検索をスキップする終了時間は、検索をスキップする開始時間より後に設定してね。")
+        error_flag = True
+
     if start_date > end_date:
         await message.channel.send("ちょっと待って、終了日時は開始日時より後に設定する必要がありますよ。⏰")
-        return
+        error_flag = True
 
     if free_time_slots == []:
         await message.channel.send("ごめんなさい、指定された期間に空いている時間帯が見つかりませんでした。😔")
+        error_flag = True
+
+    if error_flag:
+        await message.channel.send("もう一度最初から始めましょう！")
         return
 
     output = ""
@@ -206,9 +236,16 @@ async def process_freetime_command(message):
         sent_message = await message.channel.send("```" + output + "```")
 
         # メッセージに対してリアクションを追加
-        await sent_message.add_reaction("🎉")
         await sent_message.add_reaction("👍")
         await sent_message.add_reaction("👀")
+        await sent_message.add_reaction("🎉")
+
+        # 投票期限（＝start_date_msg）の取得
+    deadline = start_date_msg.content
+
+    # 投票期限の表示
+    await message.channel.send(f"投票期限は: {deadline} だよ！")
+
 
 @bot.event
 async def on_reaction_add(reaction, user):
@@ -220,6 +257,7 @@ async def on_reaction_add(reaction, user):
         for react in reaction.message.reactions:
             if str(react) != str(reaction.emoji):
                 await reaction.message.remove_reaction(react, user)
+
 
 # Discord botのトークンを使って起動
 bot.run(os.getenv('TOKEN'))
