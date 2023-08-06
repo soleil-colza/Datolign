@@ -6,6 +6,7 @@ import pytz
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from dotenv import load_dotenv
+from select_date import select_date
 
 load_dotenv()
 
@@ -150,10 +151,12 @@ async def send_message(bot, message):
 
 async def process_freetime_command(bot, message):
     await message.channel.send("さあ、検索を始めましょう！🔍 いつから探し始めるか教えてくださいね（例: 2023-08-01 12:00）")
-    start_date_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
+    # start_date_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
+    start_date_msg = await select_date(bot, message)
 
     await message.channel.send("そして、検索を終える日時はいつにしますか？📅（例: 2023-08-03 12:00）")
-    end_date_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
+    # end_date_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
+    end_date_msg = await select_date(bot, message)
 
     await message.channel.send("次に、検索をスキップする開始時間を教えてください。⏰（例: 00:00）")
     except_start_time_msg = await bot.wait_for(
@@ -170,10 +173,8 @@ async def process_freetime_command(bot, message):
     output_limit_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
 
     try:
-        start_date = jst.localize(
-            datetime.datetime.strptime(start_date_msg.content, "%Y-%m-%d %H:%M")
-        )
-        end_date = jst.localize(datetime.datetime.strptime(end_date_msg.content, "%Y-%m-%d %H:%M"))
+        start_date = jst.localize(datetime.datetime.strptime(start_date_msg, "%Y-%m-%d %H:%M"))
+        end_date = jst.localize(datetime.datetime.strptime(end_date_msg, "%Y-%m-%d %H:%M"))
         interval_minutes = int(interval_minutes_msg.content)
         output_limit = int(output_limit_msg.content)
 
@@ -223,16 +224,16 @@ async def process_freetime_command(bot, message):
         await sent_message.add_reaction("🎉")
 
         # 投票期限（＝start_date_msg）の取得
-    deadline = start_date_msg.content
+    deadline = start_date_msg
 
     # 投票期限の表示
     await message.channel.send(f"投票期限は: {deadline} だよ！")
-
     await message.channel.send("検索が完了しました！🎉 以下の時間帯が見つかりました。")
     await message.channel.send("それぞれの時間帯に対して、投票を行ってください！👍: 第3希望、👀: 第2希望、🎉:第1希望 ")
 
+
 # @bot.event
-async def on_reaction_add(reaction, user):
+async def check_reaction(bot, reaction, user):
     # リアクションがBot自身によるものであれば無視
     if user == bot.user:
         return
