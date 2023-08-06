@@ -7,11 +7,11 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from dotenv import load_dotenv
 
-load_dotenv() 
+load_dotenv()
 
 # Google Calendar APIの設定
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
-CLIENT_SECRET_FILE = "token.json"
+CLIENT_SECRET_FILE = "../token.json"
 API_SERVICE_NAME = "calendar"
 API_VERSION = "v3"
 
@@ -84,15 +84,11 @@ def get_free_time(
             except_start_time.time() <= current_time.time() <= except_end_time.time()
         ):
             while current_time < event[0] and not (
-                except_start_time.time()
-                <= current_time.time()
-                <= except_end_time.time()
+                except_start_time.time() <= current_time.time() <= except_end_time.time()
             ):  # 〇時間ずつ空いている時間帯を追加
                 next_time = current_time + datetime.timedelta(minutes=interval_minutes)
                 if next_time <= event[0] and not (
-                    except_start_time.time()
-                    <= next_time.time()
-                    <= except_end_time.time()
+                    except_start_time.time() <= next_time.time() <= except_end_time.time()
                 ):  # 〇時間後の時間がイベント開始より前なら追加
                     free_slots.append((current_time, next_time))
                 current_time = next_time
@@ -110,18 +106,17 @@ def get_free_time(
     return free_slots
 
 
-bot = commands.Bot(
-    command_prefix="!", intents=discord.Intents.all()
-)  # 好きなコマンドのプレフィックスを"!"に変更してください
+# bot = commands.Bot(
+#     command_prefix="!", intents=discord.Intents.all()
+# )  # 好きなコマンドのプレフィックスを"!"に変更してください
 
 
-@bot.event
-async def on_ready():
+# @bot.event
+async def send_on_ready(bot):
     print(f"{bot.user.name} has connected to Discord!")
 
 
-@bot.event
-async def on_reaction_limit(reaction, user):
+async def send_reaction_limit(bot, reaction, user):
     # リアクションが投票期日後に付けられたかを確認する
     if reaction.message.content.startswith("Proposed timeslot:"):
         deadline_str = reaction.message.content.split("at")[1].strip()
@@ -136,8 +131,7 @@ async def on_reaction_limit(reaction, user):
             print(f"{user} が {reaction.message.content} に {reaction.emoji}と投票しました！")
 
 
-@bot.event
-async def on_message(message):
+async def send_message(bot, message):
     # メッセージがbot自身のものであれば無視
     if message.author.bot:
         return
@@ -148,22 +142,18 @@ async def on_message(message):
     # メンションが含まれているかを確認
     if any(mention in message.content for mention in mentions):
         # メンションが含まれていれば、freetimeの処理を実行
-        await process_freetime_command(message)
+        await process_freetime_command(bot, message)
 
     # コマンドの解析を行うために必要
     await bot.process_commands(message)
 
 
-async def process_freetime_command(message):
+async def process_freetime_command(bot, message):
     await message.channel.send("さあ、検索を始めましょう！🔍 いつから探し始めるか教えてくださいね（例: 2023-08-01 12:00）")
-    start_date_msg = await bot.wait_for(
-        "message", check=lambda m: m.author == message.author
-    )
+    start_date_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
 
     await message.channel.send("そして、検索を終える日時はいつにしますか？📅（例: 2023-08-03 12:00）")
-    end_date_msg = await bot.wait_for(
-        "message", check=lambda m: m.author == message.author
-    )
+    end_date_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
 
     await message.channel.send("次に、検索をスキップする開始時間を教えてください。⏰（例: 00:00）")
     except_start_time_msg = await bot.wait_for(
@@ -171,27 +161,19 @@ async def process_freetime_command(message):
     )
 
     await message.channel.send("同様に、検索をスキップする終了時間も教えてくださいね。⏰（例: 09:00）")
-    except_end_time_msg = await bot.wait_for(
-        "message", check=lambda m: m.author == message.author
-    )
+    except_end_time_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
 
     await message.channel.send("表示間隔は何分にしますか？⏳（例: 60）")
-    interval_minutes_msg = await bot.wait_for(
-        "message", check=lambda m: m.author == message.author
-    )
+    interval_minutes_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
 
     await message.channel.send("表示したい件数は何件にしますか？🔢（例: 5）")
-    output_limit_msg = await bot.wait_for(
-        "message", check=lambda m: m.author == message.author
-    )
+    output_limit_msg = await bot.wait_for("message", check=lambda m: m.author == message.author)
 
     try:
         start_date = jst.localize(
             datetime.datetime.strptime(start_date_msg.content, "%Y-%m-%d %H:%M")
         )
-        end_date = jst.localize(
-            datetime.datetime.strptime(end_date_msg.content, "%Y-%m-%d %H:%M")
-        )
+        end_date = jst.localize(datetime.datetime.strptime(end_date_msg.content, "%Y-%m-%d %H:%M"))
         interval_minutes = int(interval_minutes_msg.content)
         output_limit = int(output_limit_msg.content)
 
@@ -247,7 +229,7 @@ async def process_freetime_command(message):
     await message.channel.send(f"投票期限は: {deadline} だよ！")
 
 
-@bot.event
+# @bot.event
 async def on_reaction_add(reaction, user):
     # リアクションがBot自身によるものであれば無視
     if user == bot.user:
@@ -260,4 +242,4 @@ async def on_reaction_add(reaction, user):
 
 
 # Discord botのトークンを使って起動
-bot.run(os.getenv('TOKEN'))
+# bot.run(os.getenv('TOKEN'))

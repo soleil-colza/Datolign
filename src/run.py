@@ -1,20 +1,25 @@
 import discord
 import os
 from discord.ext import commands
+from get_freetime import send_reaction_limit, send_message, send_on_ready
+from responce import on_reaction
+from select_date import select_date
 from dotenv import load_dotenv
-load_dotenv() 
+
+load_dotenv()
 
 intents = discord.Intents.default()
+intents.message_content = True
 intents.reactions = True
-intents.messages = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 # リアクション用の絵文字
 emoji_dict = {"3": "🎉", "2": "👍", "1": "👀"}
 
 # Botが送信したメッセージのIDを保存するリスト
 bot_message_ids = []
+
 
 @bot.command()
 async def create_poll(ctx):
@@ -23,6 +28,27 @@ async def create_poll(ctx):
         await message.add_reaction(emoji)
     # 送信したメッセージのIDをリストに追加
     bot_message_ids.append(message.id)
+
+
+@bot.event
+async def on_ready():
+    await send_on_ready(bot)
+
+
+@bot.event
+async def on_message(message):
+    await send_message(bot, message)
+
+
+@bot.event
+async def on_reaction_limit(reaction, user):
+    await send_reaction_limit(bot, reaction, user)
+
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    await on_reaction(bot, reaction, user)
+
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -44,4 +70,4 @@ async def on_raw_reaction_add(payload):
             await message.remove_reaction(reaction.emoji, payload.member)
 
 
-bot.run(os.getenv('TOKEN')) # run the bot with the token
+bot.run(os.getenv("TOKEN"))  # run the bot with the token

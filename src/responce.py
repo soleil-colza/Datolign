@@ -33,7 +33,7 @@ async def on_message(message):
 
 
 @bot.event
-async def on_reaction(reaction, user):
+async def on_reaction(bot, reaction, user):
     if user == bot.user:
         # Bot自身のリアクションには反応しない
         return
@@ -55,7 +55,7 @@ async def on_reaction(reaction, user):
     result = []
     for message in reaction_count.keys():
         reactions = reaction_count[message]
-        if sum(reactions.values()) == member_count + 1:
+        if sum(reactions.values()) == member_count + 3:
             point_3 = reactions.get("🎉", 0)
             point_2 = reactions.get("👀", 0)
             point_1 = reactions.get("👍", 0)
