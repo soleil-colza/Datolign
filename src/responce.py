@@ -45,6 +45,9 @@ async def on_reaction(bot, reaction, user):
     message = await channel.fetch_message(message_id)
     content = message.content
     emoji = str(reaction.emoji)
+    calendar_emoji = ["⏪", "◀", "⬆", "⬇️", "▶", "⏩", "🐔", "🌞", "🌙"]
+    if emoji in calendar_emoji:
+        return
 
     if content not in reaction_count:
         reaction_count[content] = {}
@@ -55,7 +58,7 @@ async def on_reaction(bot, reaction, user):
     result = []
     for message in reaction_count.keys():
         reactions = reaction_count[message]
-        if sum(reactions.values()) == member_count + 3:
+        if sum(reactions.values()) == member_count + 4:
             point_3 = reactions.get("🎉", 0)
             point_2 = reactions.get("👀", 0)
             point_1 = reactions.get("👍", 0)
