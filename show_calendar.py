@@ -18,7 +18,6 @@ async def on_ready():
     print(f"{bot.user.name} has connected to Discord!")
 
 
-@bot.command()
 async def show_calendar(ctx):
     now = datetime.now()
     current_month = now.month
@@ -26,7 +25,7 @@ async def show_calendar(ctx):
     selected_date = now.day  # 選択中の日付け
 
     # カレンダーの形式のメッセージを作成
-    calendar_message, emoji = create_calendar_message(current_month, current_year, selected_date)
+    calendar_message, emoji = _create_calendar_message(current_month, current_year, selected_date)
 
     # カレンダーをメッセージとして送信
     message = await ctx.send(calendar_message)
@@ -87,7 +86,7 @@ async def show_calendar(ctx):
             await reaction.message.remove_reaction(reaction, user)
 
             # カレンダーの内容を更新
-            calendar_message, emoji = create_calendar_message(
+            calendar_message, emoji = _create_calendar_message(
                 current_month, current_year, selected_date
             )
             await message.edit(content=calendar_message)
@@ -97,7 +96,7 @@ async def show_calendar(ctx):
         return
 
 
-def create_calendar_message(month, year, selected_date=0):
+def _create_calendar_message(month, year, selected_date=0):
     cal = calendar.monthcalendar(year, month)
     header = f"```\nカレンダー {year}年 {month}月\n"
     weekdays = [" Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -122,4 +121,4 @@ def create_calendar_message(month, year, selected_date=0):
 
 
 # Discord botのトークンを使って起動
-bot.run(TOKEN)
+# bot.run(TOKEN)
