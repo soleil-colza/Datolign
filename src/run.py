@@ -1,7 +1,7 @@
 import discord
 import os
 from discord.ext import commands
-from get_freetime import send_reaction_limit, send_message, send_on_ready
+from get_freetime import send_reaction_limit, send_message, send_on_ready, check_reaction
 from responce import on_reaction
 from select_date import select_date
 from dotenv import load_dotenv
@@ -47,6 +47,7 @@ async def on_reaction_limit(reaction, user):
 
 @bot.event
 async def on_reaction_add(reaction, user):
+    await check_reaction(bot, reaction, user)
     await on_reaction(bot, reaction, user)
 
 

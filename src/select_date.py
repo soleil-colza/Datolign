@@ -8,17 +8,17 @@ import os
 
 load_dotenv()
 
-TOKEN = os.getenv("TOKEN")
+# TOKEN = os.getenv("TOKEN")
 
-bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
-
-
-@bot.event
-async def on_ready():
-    print(f"{bot.user.name} has connected to Discord!")
+# bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 
-async def select_date(ctx):
+# @bot.event
+# async def on_ready():
+#     print(f"{bot.user.name} has connected to Discord!")
+
+
+async def select_date(bot, ctx):
     now = datetime.now()
     current_month = now.month
     current_year = now.year
@@ -28,7 +28,7 @@ async def select_date(ctx):
     calendar_message, emoji = _create_calendar_message(current_month, current_year, selected_date)
 
     # カレンダーをメッセージとして送信
-    message = await ctx.send(calendar_message)
+    message = await ctx.channel.send(calendar_message)
 
     # 月の変更，日付けの変更用のリアクションを付与
     await message.add_reaction("⏪")
@@ -73,15 +73,15 @@ async def select_date(ctx):
                 selected_date += 1
             elif str(reaction.emoji) == "🐔":
                 out = f"{current_year}-{current_month}-{selected_date} 08:00"
-                await ctx.send(out)
+                await ctx.channel.send(out)
                 return out
             elif str(reaction.emoji) == "🌞":
                 out = f"{current_year}-{current_month}-{selected_date} 13:00"
-                await ctx.send(out)
+                await ctx.channel.send(out)
                 return out
             elif str(reaction.emoji) == "🌙":
                 out = f"{current_year}-{current_month}-{selected_date} 18:00"
-                await ctx.send(out)
+                await ctx.channel.send(out)
                 return out
             await reaction.message.remove_reaction(reaction, user)
 
@@ -92,7 +92,7 @@ async def select_date(ctx):
             await message.edit(content=calendar_message)
 
     except asyncio.TimeoutError:
-        await ctx.send("タイムアウトしました")
+        await ctx.channel.send("タイムアウトしました")
         return
 
 
