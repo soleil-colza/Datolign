@@ -228,6 +228,8 @@ async def process_freetime_command(bot, message):
 
     # 投票期限の表示
     await message.channel.send(f"投票期限は: {deadline} だよ！")
+    await message.channel.send("検索が完了しました！🎉 以下の時間帯が見つかりました。")
+    await message.channel.send("それぞれの時間帯に対して、投票を行ってください！👍: 第3希望、👀: 第2希望、🎉:第1希望 ")
 
 
 # @bot.event
