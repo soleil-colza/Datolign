@@ -40,7 +40,8 @@ async def on_reaction(bot, reaction, user):
     channel = reaction.message.channel
     members = channel.guild.members
     # ボットを考慮しない人数
-    member_count = sum(not member.bot for member in members)
+    # member_count = sum(not member.bot for member in members)
+    member_count = 1
     message_id = reaction.message.id
     message = await channel.fetch_message(message_id)
     content = message.content
@@ -58,7 +59,7 @@ async def on_reaction(bot, reaction, user):
     result = []
     for message in reaction_count.keys():
         reactions = reaction_count[message]
-        if sum(reactions.values()) == member_count + 4:
+        if sum(reactions.values()) == member_count + 3:
             point_3 = reactions.get("🎉", 0)
             point_2 = reactions.get("👀", 0)
             point_1 = reactions.get("👍", 0)
